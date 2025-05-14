@@ -1,17 +1,73 @@
 
-// This file simulates the API calls that would be made to a Flask backend
+// API functions to connect with Flask backend
 
 export async function saveUserNameToFlask(name: string): Promise<boolean> {
-  // In a real application, this would make a fetch request to your Flask backend
-  // Example: return fetch('/api/save_user_name', { method: 'POST', body: JSON.stringify({ name }) })
-  
-  console.log(`[Flask Integration] Saving user name: ${name}`);
-  
-  // This simulates a successful API call
-  return new Promise((resolve) => {
-    setTimeout(() => {
-      console.log(`[Flask Backend] File created with name: ${name}`);
-      resolve(true);
-    }, 500);
-  });
+  try {
+    const response = await fetch('http://localhost:5000/api/save_user_name', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ name }),
+    });
+    
+    const data = await response.json();
+    
+    if (!response.ok) {
+      console.error('Error from Flask:', data.error);
+      return false;
+    }
+    
+    console.log('Success from Flask:', data);
+    return true;
+  } catch (error) {
+    console.error('Error connecting to Flask:', error);
+    return false;
+  }
+}
+
+export async function loginUser(email: string, password: string): Promise<{ success: boolean; name?: string; email?: string; error?: string }> {
+  try {
+    const response = await fetch('http://localhost:5000/api/login', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ email, password }),
+    });
+    
+    const data = await response.json();
+    
+    if (!response.ok) {
+      return { success: false, error: data.error || 'Login failed' };
+    }
+    
+    return { success: true, name: data.name, email: data.email };
+  } catch (error) {
+    console.error('Error connecting to Flask:', error);
+    return { success: false, error: 'Network error, please try again' };
+  }
+}
+
+export async function signupUser(name: string, email: string, password: string): Promise<{ success: boolean; name?: string; email?: string; error?: string }> {
+  try {
+    const response = await fetch('http://localhost:5000/api/signup', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ name, email, password }),
+    });
+    
+    const data = await response.json();
+    
+    if (!response.ok) {
+      return { success: false, error: data.error || 'Signup failed' };
+    }
+    
+    return { success: true, name: data.name, email: data.email };
+  } catch (error) {
+    console.error('Error connecting to Flask:', error);
+    return { success: false, error: 'Network error, please try again' };
+  }
 }

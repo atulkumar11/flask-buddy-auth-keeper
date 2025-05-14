@@ -1,6 +1,7 @@
 
 import React, { createContext, useContext, useState, ReactNode } from "react";
 import { toast } from "sonner";
+import { loginUser, signupUser } from "@/lib/api";
 
 interface User {
   name: string;
@@ -27,22 +28,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const login = async (email: string, password: string) => {
     try {
-      // This would normally be an API call to Flask
-      if (password.length < 6) {
-        toast.error("Invalid credentials");
-        return false;
-      }
-
-      // Check if user exists in localStorage (simulating a database)
-      const users = JSON.parse(localStorage.getItem("users") || "[]");
-      const foundUser = users.find((u: any) => u.email === email);
+      const result = await loginUser(email, password);
       
-      if (!foundUser || foundUser.password !== password) {
-        toast.error("Invalid credentials");
+      if (!result.success) {
+        toast.error(result.error || "Invalid credentials");
         return false;
       }
 
-      const userData = { name: foundUser.name, email: foundUser.email };
+      const userData = { name: result.name!, email: result.email! };
       
       // Save to localStorage
       localStorage.setItem("user", JSON.stringify(userData));
@@ -59,26 +52,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const signup = async (name: string, email: string, password: string) => {
     try {
-      // This would normally be an API call to Flask
-      if (password.length < 6) {
-        toast.error("Password must be at least 6 characters");
-        return false;
-      }
-
-      // Check if email already exists (simulating a database)
-      const users = JSON.parse(localStorage.getItem("users") || "[]");
-      if (users.some((u: any) => u.email === email)) {
-        toast.error("Email already registered");
-        return false;
-      }
-
-      // Add user to "database"
-      const newUser = { name, email, password };
-      users.push(newUser);
-      localStorage.setItem("users", JSON.stringify(users));
+      const result = await signupUser(name, email, password);
       
-      // Auto login after signup
-      const userData = { name, email };
+      if (!result.success) {
+        toast.error(result.error || "Signup failed");
+        return false;
+      }
+
+      const userData = { name: result.name!, email: result.email! };
+      
+      // Save to localStorage
       localStorage.setItem("user", JSON.stringify(userData));
       setUser(userData);
       
